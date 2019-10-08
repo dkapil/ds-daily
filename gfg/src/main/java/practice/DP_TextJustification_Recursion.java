@@ -5,15 +5,9 @@ import java.util.List;
 
 public class DP_TextJustification_Recursion {
 
-	static List<String> words;
-
-	static int pageWidth = 10;
-
-	static int n;
-
 	static int[][] lc;
 
-	static int[] p;
+	static int[] parentPointers;
 
 	private static double cost(int i) {
 
@@ -23,34 +17,41 @@ public class DP_TextJustification_Recursion {
 		double[] allcosts = new double[i];
 
 		for (int j = i; j >= 1; j--) {
+			System.out.println("Recur - Calculating cost(" + (j - 1) + ")");
 			allcosts[j - 1] = cost(j - 1) + lc[j][i];
+		}  
+
+		System.out.print("Allcosts c(" + i + ")=");
+		for (int j = 0; j < allcosts.length; j++) {
+			System.out.print(allcosts[j] + ",");
 		}
+		System.out.println();
 
 		return min(allcosts, i);
 	}
 
 	private static double min(double[] allcosts, int row) {
-		int minxIndex = 0;
+		int minIndex = 0;
 		double min = allcosts[0];
 
 		for (int i = 0; i < allcosts.length; i++) {
 			double j = allcosts[i];
 
 			if (j < min) {
-				minxIndex = i;
+				minIndex = i;
 				min = j;
 			}
 		}
-		p[row] = minxIndex + 1;
+		parentPointers[row] = minIndex + 1;
 		return min;
 	}
 
 	public static void main(String[] args) {
 
 //		words = Arrays.asList("a", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog");
-		words = Arrays.asList("aaa", "bb", "cc", "ddddd");
+		List<String> words = Arrays.asList("aaa", "bb", "cc", "ddddd");
 
-		n = words.size();
+		int n = words.size();
 
 		int[] l = new int[n];
 
@@ -60,17 +61,16 @@ public class DP_TextJustification_Recursion {
 
 		lc = computelc(l, n, 6);
 
-		p = new int[n + 1];
+		parentPointers = new int[n + 1];
 
 		cost(n);
 
-		System.out.println("************");
-		for (int i = 0; i < p.length; i++) {
-			System.out.print(p[i] + ",");
+		for (int i = 0; i < parentPointers.length; i++) {
+			System.out.print(parentPointers[i] + ",");
 		}
 	}
 
-	static int[][] computelc(int[] l, int n, int M) {
+	static int[][] computelc(int[] wordsLength, int n, int pageWidth) {
 		// extras[i][j] will have number of extra spaces if words from i
 		// to j are put in a single line
 		int extras[][] = new int[n + 1][n + 1];
@@ -83,9 +83,9 @@ public class DP_TextJustification_Recursion {
 		// indicates extra spaces if words from word number i to j are
 		// placed in a single line
 		for (int i = 1; i <= n; i++) {
-			extras[i][i] = M - l[i - 1];
+			extras[i][i] = pageWidth - wordsLength[i - 1];
 			for (int j = i + 1; j <= n; j++)
-				extras[i][j] = extras[i][j - 1] - l[j - 1] - 1;
+				extras[i][j] = extras[i][j - 1] - wordsLength[j - 1] - 1;
 		}
 
 		// Calculate line cost corresponding to the above calculated extra
@@ -102,25 +102,5 @@ public class DP_TextJustification_Recursion {
 			}
 		}
 		return lc;
-	}
-
-	private static int badness(int splitFrom, int splitTo) {
-		int cost;
-		int wordsLength = 0;
-
-		List<String> subwords = words.subList(splitFrom, splitTo + 1);
-
-		for (int i = 0; i < subwords.size(); i++) {
-			wordsLength = wordsLength + subwords.get(i).length();
-		}
-
-		wordsLength = wordsLength + subwords.size() - 1;
-
-		if (wordsLength <= pageWidth)
-			cost = (pageWidth - wordsLength) * (pageWidth - wordsLength);
-		else
-			cost = Integer.MAX_VALUE;
-
-		return cost;
 	}
 }
